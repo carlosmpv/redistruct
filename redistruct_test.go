@@ -72,7 +72,7 @@ func TestRedistruct_SaveStruct(t *testing.T) {
 	objToken, err := conn.SaveStruct(&testObj{
 		Nome:  "Carlos",
 		Idade: 20,
-	})
+	}, "")
 
 	if err != nil {
 		t.Error(err)
