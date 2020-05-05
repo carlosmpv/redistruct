@@ -24,14 +24,16 @@ func NewRedistruct(conn *redis.Client, prefix string) *Redistruct {
 }
 
 // SaveStruct persist struct into redis and return a unique ID and a error
-func (r *Redistruct) SaveStruct(obj interface{}) (string, error) {
+func (r *Redistruct) SaveStruct(obj interface{}, key string) (string, error) {
 	uid := xid.New()
 	data, err := serialize(obj)
 	if err != nil {
 		return "", err
 	}
 
-	key := fmt.Sprintf("%s:%s", r.Prefix, uid.String())
+	if key == "" {
+		key = fmt.Sprintf("%s:%s", r.Prefix, uid.String())
+	}
 
 	err = r.connection.Set(key, data, 0).Err()
 	if err != nil {
