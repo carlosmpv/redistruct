@@ -67,12 +67,35 @@ func TestRedistruct_SaveStruct(t *testing.T) {
 	})
 	defer client.Close()
 
-	conn := NewRedistruct(client, "obj")
+	conn := NewRedistruct(client)
 
 	objToken, err := conn.SaveStruct(&testObj{
 		Nome:  "Carlos",
 		Idade: 20,
 	}, "")
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(objToken)
+}
+
+func TestRedistruct_UpdateStruct(t *testing.T) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	defer client.Close()
+
+	conn := NewRedistruct(client)
+
+	objToken, err := conn.SaveStruct(&testObj{
+		Nome:  "Carlos",
+		Idade: 27,
+	}, "obj:bqqmmnei6ljf98abamsg")
 
 	if err != nil {
 		t.Error(err)
@@ -90,7 +113,7 @@ func TestRedistruct_LoadStruct(t *testing.T) {
 	})
 	defer client.Close()
 
-	conn := NewRedistruct(client, "obj")
+	conn := NewRedistruct(client)
 
 	var obj testObj
 	err := conn.LoadStruct("obj:bqou9hmi6ljddi3p1umg", &obj)

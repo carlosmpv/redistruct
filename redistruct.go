@@ -12,13 +12,11 @@ import (
 // Redistruct manage connection and data persistence
 type Redistruct struct {
 	connection *redis.Client
-	Prefix     string
 }
 
 // NewRedistruct create Redistruct object
-func NewRedistruct(conn *redis.Client, prefix string) *Redistruct {
+func NewRedistruct(conn *redis.Client) *Redistruct {
 	return &Redistruct{
-		Prefix:     prefix,
 		connection: conn,
 	}
 }
@@ -32,7 +30,18 @@ func (r *Redistruct) SaveStruct(obj interface{}, key string) (string, error) {
 	}
 
 	if key == "" {
-		key = fmt.Sprintf("%s:%s", r.Prefix, uid.String())
+		key = uid.String()
+	} else {
+		backupCounterKey := fmt.Sprintf("%s:counter", key)
+		count := r.connection.Incr(backupCounterKey).Val()
+
+		oldValue := r.connection.Get(key).Val()
+		backupKey := fmt.Sprintf("%s:%d", key, count)
+		err = r.connection.Set(backupKey, oldValue, 0).Err()
+
+		if err != nil {
+			return "", fmt.Errorf("[BACKUP ERROR] %s", err.Error())
+		}
 	}
 
 	err = r.connection.Set(key, data, 0).Err()
